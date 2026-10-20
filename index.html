@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hope Squad Data Foundation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single reading column with a sticky section index; architecture options drawn as four-stage flow strips; process as a numbered phase rail */
+:root{
+  --bg:#f5f8f9; --surface:#ffffff; --ink:#132b3d; --muted:#557083; --line:#d6e1e7;
+  --accent:#1f7a86; --accent-soft:#dff0f1; --sun:#e2a922; --sun-soft:#fbf1d6;
+  --a:#2f8f6b; --b:#1f7a86; --c:#4a5fa8;
+  --font-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body:"Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1a22; --surface:#15242f; --ink:#e4eef3; --muted:#9bb2c1; --line:#2a3d4a;
+  --accent:#5cc3cf; --accent-soft:#16363d; --sun:#f0c04f; --sun-soft:#3a3018;
+  --a:#5fc79d; --b:#5cc3cf; --c:#93a6ee; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e1a22; --surface:#15242f; --ink:#e4eef3; --muted:#9bb2c1; --line:#2a3d4a;
+  --accent:#5cc3cf; --accent-soft:#16363d; --sun:#f0c04f; --sun-soft:#3a3018;
+  --a:#5fc79d; --b:#5cc3cf; --c:#93a6ee; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.6;padding-inline:20px;padding-block:0 64px}
+.wrap{max-width:1040px;margin:0 auto}
+h1,h2,h3{font-family:var(--font-display);line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.1rem,5vw,3.3rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:clamp(1.5rem,3vw,2rem);font-weight:700}
+h3{font-size:1.2rem;font-weight:700}
+p{margin:0;max-width:68ch}
+.eyebrow{font-family:var(--font-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+
+header.hero{padding-block:48px 28px;display:grid;gap:16px;border-bottom:1px solid var(--line)}
+.hero .lede{font-size:1.15rem;max-width:62ch}
+.thesis{margin-top:8px;padding:14px 18px;background:var(--sun-soft);border-left:4px solid var(--sun);border-radius:4px;max-width:68ch}
+
+nav.index{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:-20px;padding:10px 20px;overflow-x:auto}
+nav.index ul{list-style:none;margin:0 auto;padding:0;display:flex;gap:6px;max-width:1040px;white-space:nowrap}
+nav.index a{display:block;padding:6px 12px;border-radius:999px;text-decoration:none;color:var(--ink);font-size:.88rem}
+nav.index a:hover{background:var(--accent-soft)}
+
+section{padding-block:48px 8px;display:grid;gap:20px;scroll-margin-top:60px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.principles{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px}
+.principles li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:4px;min-width:0}
+.principles b{font-family:var(--font-display);font-size:1rem}
+.principles span{font-size:.92rem;color:var(--muted)}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--font-mono);font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--bg)}
+tr:last-child td{border-bottom:none}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* Architecture options */
+.option{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px;display:grid;gap:16px;border-top:5px solid var(--tone)}
+.option.a{--tone:var(--a)} .option.b{--tone:var(--b)} .option.c{--tone:var(--c)}
+.opt-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-start}
+.opt-head .tag{font-family:var(--font-mono);font-size:.75rem;color:var(--tone);letter-spacing:.06em;text-transform:uppercase}
+.price{font-family:var(--font-display);font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--tone);text-align:right}
+.price small{display:block;font-family:var(--font-mono);font-size:.7rem;color:var(--muted);font-weight:400;letter-spacing:.04em}
+.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;position:relative}
+.stage{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:6px;align-content:start;position:relative;min-width:0}
+.stage:not(:last-child)::after{content:"";position:absolute;right:-9px;top:50%;width:8px;height:8px;border-top:2px solid var(--tone);border-right:2px solid var(--tone);transform:translateY(-50%) rotate(45deg);z-index:1}
+.stage .label{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.chip{display:inline-block;font-size:.84rem;padding:3px 9px;border-radius:999px;background:var(--surface);border:1px solid var(--line);margin:0 4px 4px 0}
+.chip.lock{border-color:var(--sun);background:var(--sun-soft)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:14px;font-size:.93rem}
+.facts div{display:grid;gap:2px;min-width:0}
+.facts dt{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.facts dd{margin:0}
+@media (max-width:640px){
+  .flow{grid-template-columns:1fr}
+  .stage:not(:last-child)::after{right:auto;left:50%;top:auto;bottom:-9px;transform:translateX(-50%) rotate(135deg)}
+}
+.hypothesis{background:var(--accent-soft);border-radius:10px;padding:20px 22px;display:grid;gap:8px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.rating{letter-spacing:2px;color:var(--accent);font-size:.85rem}
+.rating .off{color:var(--line)}
+
+/* Privacy */
+.law{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:6px;min-width:0}
+.law b{font-family:var(--font-display)}
+.rules{counter-reset:r;list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.rules li{counter-increment:r;display:grid;grid-template-columns:32px 1fr;gap:10px;align-items:start}
+.rules li::before{content:counter(r);font-family:var(--font-mono);font-weight:500;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--sun-soft);color:var(--ink);font-size:.85rem}
+.note{font-size:.88rem;color:var(--muted)}
+
+/* Process rail */
+.rail{list-style:none;padding:0;margin:0;display:grid;gap:0}
+.phase{display:grid;grid-template-columns:56px 1fr;gap:16px;position:relative;padding-bottom:22px}
+.phase::before{content:"";position:absolute;left:27px;top:44px;bottom:0;width:2px;background:var(--line)}
+.phase:last-child::before{display:none}
+.phase .n{width:56px;height:44px;border-radius:8px;background:var(--accent);color:var(--surface);font-family:var(--font-mono);font-weight:500;display:grid;place-items:center;font-size:.9rem}
+.phase:last-child .n{background:var(--sun);color:#1b1b1b}
+.phase .body{display:grid;gap:8px;min-width:0}
+.phase .meta{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.85rem;color:var(--muted)}
+.phase .meta span b{font-family:var(--font-mono);font-weight:500;color:var(--ink);font-size:.8rem}
+.phase ul{margin:0;padding-left:20px;font-size:.94rem;display:grid;gap:3px}
+.gate{display:inline-block;font-size:.84rem;padding:3px 10px;border:1px dashed var(--accent);border-radius:999px;color:var(--accent)}
+
+details{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 16px}
+details+details{margin-top:8px}
+summary{cursor:pointer;font-family:var(--font-display);font-weight:700;font-size:1.02rem}
+details ul{margin:10px 0 2px;padding-left:20px;display:grid;gap:4px;font-size:.95rem}
+
+.bar{height:8px;background:var(--accent-soft);border-radius:4px;min-width:80px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+
+.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+.role{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:4px;min-width:0}
+.role b{font-family:var(--font-display)}
+.role span{font-size:.92rem;color:var(--muted)}
+.next{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.next li{counter-increment:s;display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:baseline}
+.next li::before{content:counter(s);font-family:var(--font-display);font-weight:700;font-size:1.3rem;color:var(--accent)}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+<style>
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:16px}
+.rec{display:inline-block;font-family:var(--font-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;background:var(--b);color:var(--surface);padding:3px 8px;border-radius:999px;margin-left:8px;vertical-align:middle}
+.flow.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:640px){.flow.three{grid-template-columns:1fr}}
+.callout{border:1px solid var(--tone,var(--accent));background:var(--surface);border-radius:8px;padding:14px 16px;display:grid;gap:6px}
+.callout b{font-family:var(--font-display)}
+.shared{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;display:grid;gap:10px}
+.shared .row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:baseline}
+.shared .amt{font-family:var(--font-display);font-size:1.4rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
+.signin{display:flex;gap:10px;align-items:flex-start;background:var(--sun-soft);border-radius:8px;padding:12px 14px;font-size:.93rem}
+.signin b{font-family:var(--font-display)}
+.tracks{display:grid;gap:12px}
+table.cost td.num, table.cost th.num{text-align:right}
+table.cost tr.sub td{font-weight:600;background:var(--bg)}
+table.cost tr.key td{font-weight:600;background:var(--sun-soft)}
+table.cost tr.grp td{font-family:var(--font-mono);font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--bg)}
+.costtabs{display:flex;flex-wrap:wrap;gap:6px}
+.costtabs button{font:inherit;font-size:.88rem;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.costtabs button[aria-selected="true"]{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.notes{display:grid;gap:8px;font-size:.92rem}
+.notes p{max-width:80ch}
+.rules li span p{margin-top:4px;color:var(--muted);font-size:.93rem}
+.scen{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px;font-size:.92rem}
+.scen div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:0}
+.scen b{font-family:var(--font-display);display:block}
+.audiences{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}
+.aud{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:6px;align-content:start;min-width:0}
+.aud .who{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.aud b{font-family:var(--font-display)}
+.aud span{font-size:.92rem;color:var(--muted)}
+</style>
+
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Draft for discussion · October 2026</div>
+  <h1>Hope Squad Data Foundation</h1>
+  <p class="lede">Two system options for Hope Squad's survey and organizational data, with fully loaded costs, the access and privacy controls a dashboard about student mental health needs, and the process from discovery to ongoing maintenance.</p>
+</header>
+</div>
+
+<nav class="index" aria-label="Sections">
+  <ul>
+    <li><a href="#needs">Needs</a></li>
+    <li><a href="#options">Two options</a></li>
+    <li><a href="#compare">Compare</a></li>
+    <li><a href="#access">Who sees what</a></li>
+    <li><a href="#privacy">Student privacy</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#governance">Governance</a></li>
+    <li><a href="#costs">Cost appendix</a></li>
+    <li><a href="#glossary">Glossary</a></li>
+  </ul>
+</nav>
+
+<div class="wrap">
+
+<section id="needs">
+  <div class="eyebrow">From Hope Squad's vision document and roadmap</div>
+  <h2>What the system needs to do</h2>
+  <ul class="principles">
+    <li><b>Public, live dashboard</b><span>Current-year survey results, updating automatically, filterable by school, district, state, date, grade and length of membership.</span></li>
+    <li><b>Built-in pre/post</b><span>Change on every survey scale, with charts that show it meaningfully.</span></li>
+    <li><b>Every nationwide survey</b><span>Pre/Post, MHRF and Stakeholder end-of-year, each with its own dataset.</span></li>
+    <li><b>Locked history</b><span>Prior years read-only, with year-over-year by school as a later goal.</span></li>
+    <li><b>Chart downloads</b><span>Viewers can download charts as filtered; downloads of raw data stay off.</span></li>
+    <li><b>Embedding</b><span>The public report can be embedded on hopesquad.com.</span></li>
+    <li><b>Matched-pair charts</b><span>Ideas such as a histogram of change and a response-transition matrix. Matched-pair charts become possible once responses can be linked, to be scoped in discovery.</span></li>
+    <li><b>Organizational KPIs</b><span>Squads, advisors trained, lessons, renewals, revenue and cost per school from the CRM and finance systems.</span></li>
+  </ul>
+  <h3>Survey measures</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Survey scale</th><th>What it shows</th><th>Charts in the roadmap</th></tr></thead>
+    <tbody>
+      <tr><td><b>Compassion satisfaction</b></td><td>Positive feelings from helping peers</td><td>Bar, pre/post</td></tr>
+      <tr><td><b>Compassion fatigue</b></td><td>Strain from helping peers</td><td>Bar, pre/post</td></tr>
+      <tr><td><b>Stress</b></td><td>Members' stress level</td><td>Pie, pre/post</td></tr>
+      <tr><td><b>School connectedness</b></td><td>Belonging at school</td><td>Bar, pre/post</td></tr>
+      <tr><td><b>Social and emotional learning</b></td><td>SEL skills</td><td>Pie, pre/post</td></tr>
+      <tr><td><b>Gatekeeper competencies</b></td><td>Recognizing warning signs and connecting peers to help</td><td>Bar, pre/post</td></tr>
+      <tr><td><b>Peer support willingness</b></td><td>Readiness to help a struggling peer</td><td>Pie, pre/post</td></tr>
+      <tr><td><b>Peer support engagement</b></td><td>How often members helped peers</td><td>Pie, sum tile, pre/post</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Each squad is identified by its CRM Squad ID, since one school can have elementary, junior high and high school squads. NCES school ID, district ID and state hang off the squad record. Canadian squads need their own school and district identifiers.</p>
+</section>
+
+<section id="options">
+  <div class="eyebrow">System options</div>
+  <h2>Two ways to build it</h2>
+  <p>Both options use FormAssembly to collect surveys and Looker Studio to show results. The difference is what sits between them.</p>
+
+  <div class="shared">
+    <div class="row"><div><div class="eyebrow">Shared by both options</div><h3>FormAssembly, Looker Studio and seats</h3></div><div class="amt">$6,000 to $23,240 a year</div></div>
+    <p class="muted">Most likely about $13,540. FormAssembly is the largest line by far, and it costs the same under either option.</p>
+    <div class="signin"><span><b>Looker Studio sign-in.</b> Any report that shows a viewer only their own school's or district's data requires that viewer to sign in with a Google account. The public report opens without sign-in.</span></div>
+  </div>
+
+  <div class="opts">
+  <article class="option a">
+    <div class="opt-head">
+      <div><div class="tag">Option A</div><h3>Spreadsheet pipeline</h3><p class="muted">The current roadmap, moved to FormAssembly.</p></div>
+      <div class="price">$0 to $100<small>EXTRA SOFTWARE PER YEAR</small></div>
+    </div>
+    <div class="flow three" role="list" aria-label="Option A data flow">
+      <div class="stage" role="listitem"><span class="label">Collect</span><div><span class="chip">FormAssembly</span></div></div>
+      <div class="stage" role="listitem"><span class="label">Store and shape</span><div><span class="chip">Google Sheets</span><span class="chip">array formulas</span><span class="chip">percentages sheet</span></div></div>
+      <div class="stage" role="listitem"><span class="label">Use</span><div><span class="chip">Looker Studio</span></div></div>
+    </div>
+    <dl class="facts">
+      <div><dt>Strengths</dt><dd>Familiar tools, minimal setup, almost no software cost beyond the shared lines</dd></div>
+      <div><dt>Weaknesses</dt><dd>Pre/post rebuilt per scale and hard to filter by school; formulas break quietly; year-over-year is manual; coarse privacy controls</dd></div>
+      <div><dt>People</dt><dd>Someone fluent in Sheets formulas, 6 to 12 hours a month</dd></div>
+      <div><dt>Staff time</dt><dd>$3,680 to $19,600 a year</dd></div>
+    </dl>
+  </article>
+  <article class="option b">
+    <div class="opt-head">
+      <div><div class="tag">Option B <span class="rec">Recommended</span></div><h3>Light cloud warehouse</h3><p class="muted">A database between the survey tool and the dashboards.</p></div>
+      <div class="price">$25 to $7,910<small>EXTRA SOFTWARE PER YEAR · LIKELY $444</small></div>
+    </div>
+    <div class="flow" role="list" aria-label="Option B data flow">
+      <div class="stage" role="listitem"><span class="label">Collect</span><div><span class="chip">FormAssembly</span></div></div>
+      <div class="stage" role="listitem"><span class="label">Store</span><div><span class="chip">copied in automatically</span><span class="chip">BigQuery database</span></div></div>
+      <div class="stage" role="listitem"><span class="label">Clean and calculate</span><div><span class="chip">saved instructions</span><span class="chip">finished results</span><span class="chip lock">squad list, access list, student-ID key</span></div></div>
+      <div class="stage" role="listitem"><span class="label">Use</span><div><span class="chip">Looker Studio</span><span class="chip lock">email filtering</span></div></div>
+    </div>
+    <dl class="facts">
+      <div><dt>What it fixes</dt><dd>Every answer is stored the same way, so one formula shows pre/post change for every scale, even when filtered to a single school. The percentages and template sheets go away.</dd></div>
+      <div><dt>Also enables</dt><dd>SurveyMonkey history and FormAssembly data in one structure; public and restricted data kept apart; CRM and finance KPIs in the same model</dd></div>
+      <div><dt>Staff time</dt><dd>$2,320 to $15,600 a year</dd></div>
+    </dl>
+    <div class="callout" style="--tone:var(--b)"><b>Needs one person who can maintain basic SQL a few hours a month</b><span>We budget 4 to 10 hours. The work: add a question to the codebook, adjust the saved instructions when a survey changes, confirm that new data arrived each night, and update the access list. The person should be able to write and edit simple SQL queries on their own: pulling fields from a table, combining two tables, and recoding answers. A few weeks of handover covers the rest. It can be staff, a skilled volunteer, a university partner or a part-time contractor.</span></div>
+  </article>
+  </div>
+  <p class="note"><span class="dot" style="background:var(--sun)"></span>Highlighted chips mark where restricted data is held or filtered per user.</p>
+</section>
+
+<section id="compare">
+  <div class="eyebrow">Side by side</div>
+  <h2>How the options compare</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th><span class="dot" style="background:var(--a)"></span>A · Spreadsheet pipeline</th><th><span class="dot" style="background:var(--b)"></span>B · Light cloud warehouse</th></tr></thead>
+    <tbody>
+      <tr><td>Shared costs per year</td><td class="num">$6,000 to $23,240</td><td class="num">$6,000 to $23,240</td></tr>
+      <tr><td>Option-specific software per year</td><td class="num">$0 to $100</td><td class="num">$25 to $7,910</td></tr>
+      <tr><td>Staff time per year</td><td class="num">$3,680 to $19,600</td><td class="num">$2,320 to $15,600</td></tr>
+      <tr><td><b>Annual total paid, likely</b></td><td class="num"><b>$22,380</b></td><td class="num"><b>$19,913</b></td></tr>
+      <tr><td><b>One-time setup paid, likely</b></td><td class="num"><b>$41,370</b></td><td class="num"><b>$42,450</b></td></tr>
+      <tr><td>Skills needed</td><td>Advanced Google Sheets</td><td>Basic SQL, 4 to 10 hours a month</td></tr>
+      <tr><td>Per-user access</td><td>Viewers sign in with Google</td><td>Viewers sign in with Google</td></tr>
+      <tr><td>Pre/post by school</td><td><span class="rating" aria-label="2 of 5">●●<span class="off">●●●</span></span></td><td><span class="rating" aria-label="5 of 5">●●●●●</span></td></tr>
+      <tr><td>Year-over-year</td><td><span class="rating" aria-label="2 of 5">●●<span class="off">●●●</span></span></td><td><span class="rating" aria-label="4 of 5">●●●●<span class="off">●</span></span></td></tr>
+      <tr><td>Privacy controls</td><td><span class="rating" aria-label="2 of 5">●●<span class="off">●●●</span></span></td><td><span class="rating" aria-label="5 of 5">●●●●●</span></td></tr>
+      <tr><td>Survives a future tool change</td><td><span class="rating" aria-label="1 of 5">●<span class="off">●●●●</span></span></td><td><span class="rating" aria-label="5 of 5">●●●●●</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Staff time assumes $40 to $100 an hour. Annual totals carry a 20% contingency on usage-based cloud lines; one-time totals carry 20% on consultant billing and legal review. Every assumption is listed in the cost appendix.</p>
+  <p class="signin"><span><b>Cost details.</b> A line-by-line breakout of every cost, with Minimum, Likely and Conservative scenarios, assumptions and consultant hours, is in the <a href="#costs">cost appendix</a>.</span></p>
+  <div class="hypothesis">
+    <div class="eyebrow">The result</div>
+    <h3>B costs about the same as A to run each year</h3>
+    <p>B's extra software is offset by fewer hours spent repairing formulas. It costs slightly more to set up and far less to change later.</p>
+  </div>
+</section>
+
+<section id="access">
+  <div class="eyebrow">User-level permissions</div>
+  <h2>Who can see what</h2>
+  <p>Google's documentation describes "filter by email address" as row-level data security that "is available for any kind of data source," and its data governance guide says it "applies to both the no-cost version of Data Studio and to Data Studio Pro." Google has renamed Looker Studio to Data Studio, so newer pages use that name.</p>
+  <div class="audiences">
+    <div class="aud"><span class="who">Public</span><b>No sign-in</b><span>A separate report that only uses totals. Any group of fewer than 10 students is hidden, and individual responses never reach it.</span></div>
+    <div class="aud"><span class="who">Schools and districts</span><b>Google sign-in, own data only</b><span>Email filtering on the restricted data, driven by an access list that maps each email to squad or district IDs. This replaces most raw data requests that now come to support@hopesquad.com.</span></div>
+    <div class="aud"><span class="who">Hope Squad staff</span><b>Full internal view</b><span>Staff sign in and see everything except information that identifies students.</span></div>
+  </div>
+  <div class="signin"><span><b>Viewers must sign in with a Google account</b> to see a filtered report, and must agree to share their email address. This applies even if the report is shared publicly. School staff on Microsoft accounts can create a free Google account using their work email.</span></div>
+  <div class="grid2">
+    <div class="law"><b>What to plan for</b><span>The access list must be updated every school year, and email matching is case-sensitive. It sits with Option B's SQL maintainer. Small-number suppression still applies in partner views, because a counsellor may know every student in a squad of 12.</span></div>
+    <div class="law"><b>What Looker Studio Pro adds</b><span>Organization-owned reports instead of personal or shared-admin ownership, team workspaces with roles, Google Cloud access control, scheduled delivery and alerts, and support. Budgeted as an optional shared line.</span></div>
+  </div>
+  <p class="note">For comparison, row-level security in Power BI generally requires a paid licence for every viewer, which is one reason Looker Studio suits a partner-facing dashboard better.</p>
+</section>
+
+<section id="privacy">
+  <div class="eyebrow">Built in from day one</div>
+  <h2>Student privacy and sensitive data</h2>
+  <p>Hope Squad's own documents point to specific risks: a public dashboard filterable down to small squads; source data holding initials, birth year and birth month; a planned monitoring view of whether any member is suicidal; and respondents in Canada. This is a checklist for counsel familiar with student privacy and does not constitute legal advice.</p>
+  <div class="grid2">
+    <div class="law"><b>FERPA</b><span>Student-level data from schools is likely an education record, shared under the "school official" exception.</span></div>
+    <div class="law"><b>PPRA</b><span>Surveys asking about mental or psychological problems trigger parent notification and opt-out, and written consent in some cases.</span></div>
+    <div class="law"><b>COPPA</b><span>Online collection of personal information from children under 13 needs parental consent. This applies to the elementary program.</span></div>
+    <div class="law"><b>State, district and Canadian rules</b><span>State student privacy laws, district data privacy agreements, and provincial law for Canadian squads.</span></div>
+    <div class="law"><b>HIPAA-level safeguards</b><span>Probably not legally required, but it is the standard parents and funders will assume.</span></div>
+    <div class="law"><b>Research ethics</b><span>IRB review and data use agreements for anything intended for publication.</span></div>
+  </div>
+  <h3>Design rules</h3>
+  <ol class="rules">
+    <li><span><b>Public data is aggregated and suppressed.</b> Any result based on fewer than 10 students is hidden, however the filters are combined.</span></li>
+    <li><span><b>Identifiers stay out of public and partner data sources.</b> Initials, birth dates and research IDs are kept out entirely; hiding them from charts is not enough.</span></li>
+    <li><span><b>Viewer downloads of underlying data are switched off.</b> Chart image export can stay.</span></li>
+    <li><span><b>The monitoring view.</b> Before we build the monitoring view, we'll confirm with your team how flagged responses are handled today, so the dashboard supports your existing protocol.</span></li>
+  </ol>
+</section>
+
+<section id="process">
+  <div class="eyebrow">From discovery to maintenance</div>
+  <h2>The process, phase by phase</h2>
+  <p>Seven phases, each ending in a decision gate where leadership can stop, adjust or continue. About five to eight months from kickoff to launch.</p>
+  <ol class="rail">
+    <li class="phase"><div class="n">0</div><div class="body">
+      <h3>Mobilize</h3>
+      <div class="meta"><span><b>1–2 WKS</b></span><span>Charter, sponsor, core team, decision rights</span></div>
+      <ul><li>Decide the FormAssembly switch-over timing. Moving at the end of a pre/post cycle is cleanest; otherwise every question and answer must match exactly across both platforms.</li></ul>
+      <span class="gate">Gate: scope and timing agreed</span></div></li>
+    <li class="phase"><div class="n">1</div><div class="body">
+      <h3>Discovery</h3>
+      <div class="meta"><span><b>3–5 WKS</b></span><span>Data inventory, survey and KPI catalog, privacy obligations register</span></div>
+      <ul><li>Interview leadership, programs, research, development, finance and two or three school advisors.</li><li>Inventory every spreadsheet, survey and system, and collect the questions the board and funders ask most.</li></ul>
+      <span class="gate">Gate: priorities agreed</span></div></li>
+    <li class="phase"><div class="n">2</div><div class="body">
+      <h3>Requirements and design</h3>
+      <div class="meta"><span><b>2–3 WKS</b></span><span>Ranked use cases, KPI definitions, first codebook draft</span></div>
+      <ul><li>Start the codebook, since the FormAssembly forms are built from it.</li><li>Name the SQL maintainer.</li></ul>
+      <span class="gate">Gate: Option A or B confirmed</span></div></li>
+    <li class="phase"><div class="n">3</div><div class="body">
+      <h3>Proof of concept</h3>
+      <div class="meta"><span><b>2–3 WKS</b></span><span>One pre/post scale and one KPI dashboard on real, de-identified data</span></div>
+      <span class="gate">Gate: approach confirmed</span></div></li>
+    <li class="phase"><div class="n">4</div><div class="body">
+      <h3>Build</h3>
+      <div class="meta"><span><b>10–16 WKS</b></span><span>Final codebook, FormAssembly surveys, loads, data model, access list, CRM and finance data, dashboards</span></div>
+      <ul><li>Build FormAssembly surveys and the data model in parallel.</li><li>Align historical survey data to current Squad IDs through a school-name crosswalk.</li><li>Use the CRM squad list, filtered by state, for the survey's school question, and check the school ID students type against the school they select.</li><li>Reconcile totals against existing reports before anyone sees a dashboard.</li></ul>
+      <span class="gate">Gate: data quality sign-off</span></div></li>
+    <li class="phase"><div class="n">5</div><div class="body">
+      <h3>Privacy sign-off and launch</h3>
+      <div class="meta"><span><b>4–6 WKS</b></span><span>Counsel review, confirmed handling of flagged responses, training, handover</span></div>
+      <ul><li>Nothing goes public until counsel has reviewed the checklist and the handling of flagged responses is confirmed.</li><li>Train the customer experience team to give schools their squad codes and partner sign-in details.</li></ul>
+      <span class="gate">Gate: staff and partners using it</span></div></li>
+    <li class="phase"><div class="n">6</div><div class="body">
+      <h3>Operate and improve</h3>
+      <div class="meta"><span><b>ONGOING</b></span><span>Operating rhythm</span></div>
+      <ul><li><b>Weekly:</b> check that new survey data arrived; follow up on any error alerts.</li><li><b>Monthly:</b> data quality checks, small fixes, cloud spend against budget.</li><li><b>Each school year:</b> roll over surveys, squad list and access list; archive and lock the prior year.</li><li><b>Annually:</b> access, privacy, retention, licence and cost review; roadmap update.</li></ul>
+      <span class="gate">Gate: annual review</span></div></li>
+  </ol>
+</section>
+
+<section id="governance">
+  <div class="eyebrow">Keeping it healthy</div>
+  <h2>Governance, sized for Hope Squad</h2>
+  <div class="roles">
+    <div class="role"><b>Executive sponsor</b><span>Settles definition disputes and owns the budget.</span></div>
+    <div class="role"><b>Data owners</b><span>One each for programs, research, development and finance.</span></div>
+    <div class="role"><b>Data steward and SQL maintainer</b><span>Keeps the codebook, transformations and access list current.</span></div>
+    <div class="role"><b>Privacy lead</b><span>District agreements, consent and incident response.</span></div>
+  </div>
+  <p class="note">Core policies: the codebook as the single definition of every question and measure; organization-owned accounts in place of the shared admin login; access tiers with named approvers reviewed annually; small-number suppression on every shared report.</p>
+  <h3>Next steps</h3>
+  <ol class="next">
+    <li>Confirm the FormAssembly switch-over timing against the 2026-27 pre survey.</li>
+    <li>Name the SQL maintainer for Option B.</li>
+    <li>Request FormAssembly's nonprofit quote, stating response volume and compliance needs.</li>
+    <li>Agree the executive sponsor and core team, and schedule discovery.</li>
+    <li>Engage counsel on the privacy checklist.</li>
+  </ol>
+</section>
+
+<section id="costs">
+  <div class="eyebrow">Appendix</div>
+  <h2>Cost breakout</h2>
+  <p>US dollars per year unless marked one-time. Prices were checked in October 2026 and should be confirmed with each vendor.</p>
+  <div class="scen">
+    <div><b>Minimum</b>Every service on its free tier, fewest hours. A floor.</div>
+    <div><b>Likely</b>Our best estimate.</div>
+    <div><b>Conservative</b>Worst-case hours and prices. We recommend budgeting to this column.</div>
+  </div>
+  <div class="costtabs" role="tablist" aria-label="Cost tables">
+    <button role="tab" id="tab-tot" aria-selected="true" data-p="p-tot">Totals</button>
+    <button role="tab" id="tab-asm" aria-selected="false" data-p="p-asm">Assumptions</button>
+    <button role="tab" id="tab-ann" aria-selected="false" data-p="p-ann">Annual costs</button>
+    <button role="tab" id="tab-one" aria-selected="false" data-p="p-one">One-time setup</button>
+    <button role="tab" id="tab-hrs" aria-selected="false" data-p="p-hrs">Consultant hours</button>
+  </div>
+
+  <div id="p-tot" role="tabpanel" aria-labelledby="tab-tot" class="tablewrap"><table class="cost">
+    <thead><tr><th></th><th class="num">A min</th><th class="num">A likely</th><th class="num">A cons.</th><th class="num">B min</th><th class="num">B likely</th><th class="num">B cons.</th></tr></thead>
+    <tbody>
+      <tr><td>Annual: shared costs</td><td class="num">6,000</td><td class="num">13,540</td><td class="num">23,240</td><td class="num">6,000</td><td class="num">13,540</td><td class="num">23,240</td></tr>
+      <tr><td>Annual: option-specific costs</td><td class="num">3,680</td><td class="num">8,840</td><td class="num">19,720</td><td class="num">2,350</td><td class="num">6,373</td><td class="num">24,612</td></tr>
+      <tr class="key"><td>Annual total</td><td class="num">9,680</td><td class="num">22,380</td><td class="num">42,960</td><td class="num">8,350</td><td class="num">19,913</td><td class="num">47,852</td></tr>
+      <tr class="key"><td>One-time total</td><td class="num">27,180</td><td class="num">41,370</td><td class="num">56,760</td><td class="num">27,900</td><td class="num">42,450</td><td class="num">58,200</td></tr>
+      <tr><td>First year</td><td class="num">36,860</td><td class="num">63,750</td><td class="num">99,720</td><td class="num">36,250</td><td class="num">62,363</td><td class="num">106,052</td></tr>
+      <tr><td>Three years</td><td class="num">56,220</td><td class="num">108,510</td><td class="num">185,640</td><td class="num">52,950</td><td class="num">102,189</td><td class="num">201,756</td></tr>
+    </tbody></table></div>
+
+  <div id="p-asm" role="tabpanel" aria-labelledby="tab-asm" class="tablewrap" hidden><table class="cost">
+    <thead><tr><th>Assumption</th><th>Minimum</th><th>Likely</th><th>Conservative</th><th>Basis</th></tr></thead>
+    <tbody>
+      <tr><td>Staff or contractor rate, ongoing data work</td><td>$40/hr</td><td>$60/hr</td><td>$100/hr</td><td>Loaded nonprofit staff cost at the low end; part-time contractor at the high end</td></tr>
+      <tr><td>Ongoing maintenance, Option A</td><td>6 hrs/mo</td><td>9 hrs/mo</td><td>12 hrs/mo</td><td>Formula repairs, sheet fixes, refresh checks</td></tr>
+      <tr><td>Ongoing maintenance, Option B</td><td>4 hrs/mo</td><td>6 hrs/mo</td><td>10 hrs/mo</td><td>SQL changes, load checks, access list updates</td></tr>
+      <tr><td>School-year rollover, Option A</td><td>20 hrs</td><td>30 hrs</td><td>40 hrs</td><td>Rebuilding source sheets and formulas</td></tr>
+      <tr><td>School-year rollover, Option B</td><td>10 hrs</td><td>17 hrs</td><td>24 hrs</td><td>Updating codebook, squad list and access list</td></tr>
+      <tr><td>Consultant market rate</td><td colspan="3">$200/hr discovery, planning and project management; $150/hr technical build</td><td>Typical US range for a senior independent analytics consultant: $175 to $250 strategy, $125 to $175 build</td></tr>
+      <tr><td>Consultant billed rate</td><td colspan="3">$75/hr</td><td>Discounted rate for Hope Squad</td></tr>
+      <tr><td>Consultant hours, Option A</td><td>302</td><td>433</td><td>564</td><td>Task estimate</td></tr>
+      <tr><td>Consultant hours, Option B</td><td>310</td><td>445</td><td>580</td><td>Task estimate (see Consultant hours)</td></tr>
+      <tr><td>Legal counsel rate</td><td>n/a</td><td>$300/hr</td><td>$400/hr</td><td>Outside counsel experienced in student privacy. Existing legal work assumed to carry over; targeted one-time review of 0, about 7 and about 12 hours; annual refresh of 0, about 2 and about 3 hours</td></tr>
+      <tr><td>Contingency</td><td colspan="3">20%, applied only to uncertain lines</td><td>Consultant billing, legal review and usage-based cloud services. Fixed licences and subscriptions carry none.</td></tr>
+      <tr><td>Survey volume</td><td colspan="3">Under about 100,000 responses and 10 GB a year</td><td>Likely within BigQuery's free tier</td></tr>
+      <tr><td>FormAssembly</td><td>$6,000</td><td>$12,500</td><td>$20,000</td><td>Vendr median and range; 10 to 20% nonprofit discount reported</td></tr>
+    </tbody></table></div>
+
+  <div id="p-ann" role="tabpanel" aria-labelledby="tab-ann" class="tablewrap" hidden><table class="cost">
+    <thead><tr><th>Item</th><th class="num">Minimum</th><th class="num">Likely</th><th class="num">Conservative</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="4">Shared by both options</td></tr>
+      <tr><td>FormAssembly subscription</td><td class="num">6,000</td><td class="num">12,500</td><td class="num">20,000</td></tr>
+      <tr><td>FormAssembly connector add-ons (Google Sheets, CRM)</td><td class="num">0</td><td class="num">500</td><td class="num">1,500</td></tr>
+      <tr><td>Nonprofit Google Workspace or Microsoft 365 seats for data staff</td><td class="num">0</td><td class="num">0</td><td class="num">660</td></tr>
+      <tr><td>Looker Studio</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+      <tr><td>Looker Studio Pro for 5 to 10 internal editors (optional)</td><td class="num">0</td><td class="num">540</td><td class="num">1,080</td></tr>
+      <tr class="sub"><td>Subtotal, shared</td><td class="num">6,000</td><td class="num">13,540</td><td class="num">23,240</td></tr>
+      <tr class="grp"><td colspan="4">Option A only</td></tr>
+      <tr><td>API usage beyond free quotas</td><td class="num">0</td><td class="num">50</td><td class="num">100</td></tr>
+      <tr><td>Data maintenance, 6 to 12 hours a month</td><td class="num">2,880</td><td class="num">6,480</td><td class="num">14,400</td></tr>
+      <tr><td>School-year rollover, 20 to 40 hours</td><td class="num">800</td><td class="num">1,800</td><td class="num">4,000</td></tr>
+      <tr><td>Annual counsel refresh (targeted)</td><td class="num">0</td><td class="num">500</td><td class="num">1,200</td></tr>
+      <tr><td>Contingency, 20% of usage-based lines</td><td class="num">0</td><td class="num">10</td><td class="num">20</td></tr>
+      <tr class="sub"><td>Subtotal, Option A only</td><td class="num">3,680</td><td class="num">8,840</td><td class="num">19,720</td></tr>
+      <tr class="grp"><td colspan="4">Option B only</td></tr>
+      <tr><td colspan="4" class="muted" style="font-size:.88rem">In plain terms: <b>Database</b> means where the data is stored; <b>Data movement (ELT)</b> means tools that copy data from FormAssembly and the CRM into the database; <b>Transformation and semantic layer</b> means the saved instructions that clean and code the data, and one agreed definition of each measure; <b>Operations</b> means backups, error logs and support; <b>APIs</b> means automatic data exchange between systems.</td></tr>
+      <tr><td>Database: BigQuery storage and queries</td><td class="num">0</td><td class="num">120</td><td class="num">600</td></tr>
+      <tr><td>Database: BigQuery BI Engine cache (optional)</td><td class="num">0</td><td class="num">0</td><td class="num">720</td></tr>
+      <tr><td>Database: PostgreSQL for master lists, access list, research ID key</td><td class="num">0</td><td class="num">0</td><td class="num">1,200</td></tr>
+      <tr><td>Data movement (ELT): Cloud Run and Cloud Scheduler for API loads</td><td class="num">0</td><td class="num">24</td><td class="num">240</td></tr>
+      <tr><td>Data movement (ELT): managed connector for CRM and other sources</td><td class="num">0</td><td class="num">0</td><td class="num">3,000</td></tr>
+      <tr><td>Transformation and semantic layer: Dataform (free) or dbt Cloud Starter</td><td class="num">0</td><td class="num">0</td><td class="num">1,200</td></tr>
+      <tr><td>Operations: logging, backups, archive, secrets, Google Cloud support</td><td class="num">25</td><td class="num">150</td><td class="num">650</td></tr>
+      <tr><td>APIs: usage beyond free quotas (Google, CRM, AI-assisted matching)</td><td class="num">0</td><td class="num">150</td><td class="num">300</td></tr>
+      <tr><td>SQL maintenance, 4 to 10 hours a month</td><td class="num">1,920</td><td class="num">4,320</td><td class="num">12,000</td></tr>
+      <tr><td>School-year rollover, 10 to 24 hours</td><td class="num">400</td><td class="num">1,020</td><td class="num">2,400</td></tr>
+      <tr><td>Annual counsel refresh (targeted)</td><td class="num">0</td><td class="num">500</td><td class="num">1,200</td></tr>
+      <tr><td>Contingency, 20% of usage-based cloud lines</td><td class="num">5</td><td class="num">89</td><td class="num">1,102</td></tr>
+      <tr class="sub"><td>Subtotal, Option B only</td><td class="num">2,350</td><td class="num">6,373</td><td class="num">24,612</td></tr>
+    </tbody></table></div>
+
+  <div id="p-one" role="tabpanel" aria-labelledby="tab-one" class="tablewrap" hidden><table class="cost">
+    <thead><tr><th>Item</th><th class="num">A min</th><th class="num">A likely</th><th class="num">A cons.</th><th class="num">B min</th><th class="num">B likely</th><th class="num">B cons.</th></tr></thead>
+    <tbody>
+      <tr><td>Consultant hours</td><td class="num">302</td><td class="num">433</td><td class="num">564</td><td class="num">310</td><td class="num">445</td><td class="num">580</td></tr>
+      <tr><td>Consultant time at market rate</td><td class="num">49,700</td><td class="num">70,750</td><td class="num">91,800</td><td class="num">50,900</td><td class="num">72,550</td><td class="num">94,200</td></tr>
+      <tr><td>Less: consultant discount (donated)</td><td class="num">(27,050)</td><td class="num">(38,275)</td><td class="num">(49,500)</td><td class="num">(27,650)</td><td class="num">(39,175)</td><td class="num">(50,700)</td></tr>
+      <tr class="sub"><td>Consultant time billed at $75/hr</td><td class="num">22,650</td><td class="num">32,475</td><td class="num">42,300</td><td class="num">23,250</td><td class="num">33,375</td><td class="num">43,500</td></tr>
+      <tr><td>Targeted legal review of what's new: public school-level reporting, partner access, new vendors, linked research IDs</td><td class="num">0</td><td class="num">2,000</td><td class="num">5,000</td><td class="num">0</td><td class="num">2,000</td><td class="num">5,000</td></tr>
+      <tr><td>Contingency, 20% of consultant billing and legal review</td><td class="num">4,530</td><td class="num">6,895</td><td class="num">9,460</td><td class="num">4,650</td><td class="num">7,075</td><td class="num">9,700</td></tr>
+      <tr class="key"><td>One-time total paid</td><td class="num">27,180</td><td class="num">41,370</td><td class="num">56,760</td><td class="num">27,900</td><td class="num">42,450</td><td class="num">58,200</td></tr>
+    </tbody></table></div>
+
+  <div id="p-hrs" role="tabpanel" aria-labelledby="tab-hrs" class="tablewrap" hidden><table class="cost">
+    <thead><tr><th>Task (Option B)</th><th class="num">Minimum</th><th class="num">Conservative</th><th>Rate basis</th></tr></thead>
+    <tbody>
+      <tr><td>Mobilize, discovery interviews, data inventory, KPI catalog</td><td class="num">52</td><td class="num">86</td><td>Strategy</td></tr>
+      <tr><td>Requirements and KPI definitions</td><td class="num">10</td><td class="num">18</td><td>Strategy</td></tr>
+      <tr><td>Proof of concept: one KPI dashboard, one pre/post scale</td><td class="num">16</td><td class="num">30</td><td>Build</td></tr>
+      <tr><td>Google Cloud setup, security and billing alerts</td><td class="num">6</td><td class="num">12</td><td>Build</td></tr>
+      <tr><td>Codebook for Pre/Post, MHRF and Stakeholder end-of-year</td><td class="num">16</td><td class="num">30</td><td>Build</td></tr>
+      <tr><td>FormAssembly technical build: squad list, research ID, attention checks</td><td class="num">20</td><td class="num">40</td><td>Build</td></tr>
+      <tr><td>Data loading, including SurveyMonkey history</td><td class="num">12</td><td class="num">24</td><td>Build</td></tr>
+      <tr><td>Dataform models: coding, matching, suppression, reporting layer</td><td class="num">30</td><td class="num">50</td><td>Build</td></tr>
+      <tr><td>Access list, email filtering, public aggregate dataset</td><td class="num">8</td><td class="num">16</td><td>Build</td></tr>
+      <tr><td>CRM and finance loads, KPI models</td><td class="num">20</td><td class="num">40</td><td>Build</td></tr>
+      <tr><td>Historical cleanup and school-name crosswalk</td><td class="num">30</td><td class="num">80</td><td>Build</td></tr>
+      <tr><td>Dashboards: public, partner, internal KPI and monitoring</td><td class="num">30</td><td class="num">50</td><td>Build</td></tr>
+      <tr><td>Testing, reconciliation, documentation and runbook</td><td class="num">18</td><td class="num">36</td><td>Build</td></tr>
+      <tr><td>Training, office hours, handover</td><td class="num">16</td><td class="num">30</td><td>Build</td></tr>
+      <tr><td>Project management and meetings</td><td class="num">26</td><td class="num">40</td><td>Strategy</td></tr>
+      <tr class="sub"><td>Total</td><td class="num">310</td><td class="num">580</td><td>Likely: 445</td></tr>
+    </tbody></table></div>
+
+  <details><summary>Notes on each line and sources</summary>
+  <div class="notes" style="margin-top:10px">
+    <p><b>The $25 minimum for Option B.</b> Every service stays free: BigQuery under its free limits, free Dataform, the Sheets connector, a locked BigQuery dataset instead of PostgreSQL, Fivetran's free plan, and no Pro. Only about $2 a month of storage, logging and secrets remains.</p>
+    <p><b>Consultant discount.</b> The donated portion of consultant time may qualify as an in-kind contribution of specialized professional services, which Hope Squad can record and report to its board and funders. Its accountant should confirm the treatment. Option A needs roughly the same consultant effort as B: it skips the Google Cloud setup and the email-filtered dataset but spends more time on formulas and percentage sheets.</p>
+    <p><b>FormAssembly.</b> No published prices. Plans are Collect, Automate, Enterprise and Gov Cloud, with API access on all and integrations such as Salesforce added per connection. Response volume probably exceeds the Collect tier's 12,000 a year, and HIPAA-level needs may require a higher plan.</p>
+    <p><b>BigQuery.</b> The free tier covers 10 GB of storage and 1 TB of queries a month. The conservative case allows for heavy dashboard traffic at about $6.25 per additional TB. BI Engine is optional acceleration at roughly $30 per GB a month.</p>
+    <p><b>PostgreSQL.</b> Supabase Pro or Google Cloud SQL, to keep the research ID key and access list physically separate. A locked BigQuery dataset can do the same for $0, which is the likely case.</p>
+    <p><b>Data movement.</b> The FormAssembly Sheets connector is the simplest route. The API route uses Cloud Run and Cloud Scheduler, mostly within free tiers. Fivetran's free plan covers up to 500,000 monthly active rows, which is probably enough for CRM data.</p>
+    <p><b>Transformation and semantic layer.</b> Dataform is free inside BigQuery and is the default. Shared metric definitions live in Dataform reporting views and shared Looker Studio data sources at no software cost; maintaining them is part of the SQL maintainer's hours. dbt Cloud Starter is about $100 per user per month and includes a basic semantic layer.</p>
+    <p><b>APIs.</b> FormAssembly includes API access on every plan; Google Sheets and BigQuery APIs fall within free quotas at this volume; CRM APIs normally sit within licence limits. The allowance covers overages and AI-assisted matching of historical school names.</p>
+    <p><b>Legal review.</b> Hope Squad's existing legal work on its questionnaires, district agreements, PPRA notification and FERPA obligations is assumed to carry over; this will be confirmed in discovery. The budget covers only a targeted review of what this project adds: public school-level reporting, partner sign-in access, new vendors holding student data (FormAssembly and Google Cloud), and research IDs that link pre and post answers. Counsel is assumed at $300 to $400 an hour. The one-time review ($0, $2,000 and $5,000) buys none, about 7 and about 12 hours; the minimum assumes existing counsel signs off within current arrangements. The annual refresh ($0, $500 and $1,200) buys none, about 2 and about 3 hours. Staff time for the annual access review is covered by the maintenance hours.</p>
+    <p><b>Excluded.</b> CRM licences (already in place), staff time to write survey questions, and costs to schools.</p>
+    <p class="muted">Sources, accessed 20 October 2026: <a href="https://www.formassembly.com/pricing/">FormAssembly pricing</a>; <a href="https://www.vendr.com/marketplace/formassembly">Vendr FormAssembly data</a>; Google documentation on <a href="https://docs.cloud.google.com/data-studio/filter-by-email-address">filtering by email address</a>, <a href="https://docs.cloud.google.com/looker/docs/studio/data-governance-in-looker-studio-an-overview">data governance</a> and <a href="https://docs.cloud.google.com/data-studio/about-pro">Data Studio Pro</a>; <a href="https://www.paradime.io/guides/dbt-cloud-pricing">Paradime on dbt Cloud pricing</a>; <a href="https://costbench.com/software/etl-tools/fivetran/free-plan">CostBench on the Fivetran free plan</a>.</p>
+  </div></details>
+</section>
+
+<section id="glossary">
+  <div class="eyebrow">Appendix</div>
+  <h2>Glossary</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Term</th><th>Plain meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>API</b></td><td>A way for two systems to send data to each other automatically</td></tr>
+      <tr><td><b>BigQuery</b></td><td>Google's cloud database, free at Hope Squad's likely size</td></tr>
+      <tr><td><b>Codebook</b></td><td>The master list of every survey question and answer, with permanent codes</td></tr>
+      <tr><td><b>Dataform</b></td><td>Google's free tool for the saved instructions that clean and calculate data</td></tr>
+      <tr><td><b>ELT or data movement</b></td><td>Tools that copy data from one system into the database</td></tr>
+      <tr><td><b>NCES ID</b></td><td>The federal ID number for every US public school</td></tr>
+      <tr><td><b>Row-level security or email filtering</b></td><td>Showing each signed-in viewer only the data they are allowed to see</td></tr>
+      <tr><td><b>Semantic layer</b></td><td>One agreed definition of each measure, so every chart calculates it the same way</td></tr>
+      <tr><td><b>Small-number suppression</b></td><td>Hiding results based on too few students, to protect privacy</td></tr>
+      <tr><td><b>SQL</b></td><td>The standard language for asking a database questions</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>Draft for discussion. Prices are indicative as of October 2026 and should be confirmed with each vendor. Legal frameworks are listed for review with qualified counsel.</footer>
+</div>
+
+<script>
+(function(){
+  var tabs=document.querySelectorAll('.costtabs button');
+  tabs.forEach(function(b){b.addEventListener('click',function(){
+    tabs.forEach(function(t){t.setAttribute('aria-selected',t===b?'true':'false');document.getElementById(t.dataset.p).hidden=(t!==b);});
+  });});
+})();
+</script>
+
+</html>
